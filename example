@@ -1,0 +1,70 @@
+$ export VAULT_ADDR=http://127.0.0.1:8200
+
+$ vault login root
+Success! You are now authenticated. The token information displayed below
+is already stored in the token helper. You do NOT need to run "vault login"
+again. Future Vault requests will automatically use this token.
+
+$ vault secrets enable transform
+Success! Enabled the transform secrets engine at: transform/
+
+$ vault write transform/role/payments transformations=card-number
+Success! Data written to: transform/role/payments
+
+$ vault list transform/role
+Keys
+----
+payments
+$ vault write transform/transformation/card-number type=fpe \
+>         template="builtin/creditcardnumber" \
+>         tweak_source=internal \
+>         allowed_roles=payments
+Success! Data written to: transform/transformation/card-number
+
+$ vault list transform/transformation
+Keys
+----
+card-number
+
+$ vault read transform/transformation/card-number
+Key              Value
+---              -----
+allowed_roles    [payments]
+templates        [builtin/creditcardnumber]
+tweak_source     internal
+type             fpe
+
+$ vault write transform/encode/payments value=1111-2222-3333-4444
+Key              Value
+---              -----
+encoded_value    3177-5848-4282-4372
+
+$ vault write -format=json transform/encode/payments value=1111-2222-3333-4444 \
+>    | jq -r ".data.encoded_value" > card-encoded.txt
+
+$ vault write transform/decode/payments value=$(cat card-encoded.txt)
+Key              Value
+---              -----
+decoded_value    1111-2222-3333-4444
+
+$ vault write transform/template/email-tmpl type=regex pattern="^(?:[a-zA-Z0-9])([-_0-9a-zA-Z]+(\.[-_0-9a-zA-Z]+)*|^\"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-011\013\014\016-\177])*\")@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?$" alphabet=builtin/alphanumeric
+vault write transform/template/email-tmpl type=regex pattern="^(?:[a-zA-Z0-9])([-_0-9a-zA-Z]+(\.[-_0-9a-zA-Z]+)*|^\"([\001-\010\013\014\016-\037vault write transform/template/email-tmpl type=regex\[\]-\177]|\\[\001-011\013\014\016-\177])*\")@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?$" alphabet=builtin/alphanumeric
+Success! Data written to: transform/template/email-tmpl
+
+$ vault write transform/transformation/email type=fpe template=email-tmpl tweak_source=internal allowed_roles=*
+Success! Data written to: transform/transformation/email
+
+$ vault write transform/role/payments transformations=card-number,email
+Success! Data written to: transform/role/payments
+
+$ vault write transform/encode/payments value="someemail@gmail.com" transformation=email
+Key              Value
+---              -----
+encoded_value    st8QVSe8Y@gmail.com
+
+
+$ vault write transform/decode/payments value="st8QVSe8Y@gmail.com" transformation=email
+Key              Value
+---              -----
+decoded_value    someemail@gmail.com
+$
