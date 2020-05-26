@@ -1,0 +1,11 @@
+    export VAULT_ADDR=http://127.0.0.1:8200
+    vault login root
+    vault secrets enable transform
+    
+    vault write transform/role/email transformations=email-2
+    vault write transform/alphabet/email alphabet="1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@-_.@"
+    vault write transform/template/email-tmpl-2 type=regex pattern="^([a-zA-Z0-9._%+\-]+)@([a-zA-Z0-9.\-]+)\.([A-Za-z]{2,4})$" alphabet=email
+    vault write transform/transformation/email-2 type=fpe template=email-tmpl-2 tweak_source=internal allowed_roles=*
+    
+    vault write transform/encode/email value="someemail1@gmail.com" transformation=email-2
+    vault write transform/decode/email value="x8gqGlADVW@lCjHf.IFO" transformation=email-2
