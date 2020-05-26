@@ -7,5 +7,31 @@
     vault write transform/template/email-tmpl-2 type=regex pattern="^([a-zA-Z0-9._%+\-]+)@([a-zA-Z0-9.\-]+)\.([A-Za-z]{2,4})$" alphabet=email
     vault write transform/transformation/email-2 type=fpe template=email-tmpl-2 tweak_source=internal allowed_roles=*
     
-    vault write transform/encode/email value="someemail1@gmail.com" transformation=email-2
+    vault write transform/encode/email value="someemail@gmail.com" transformation=email-2
     vault write transform/decode/email value="x8gqGlADVW@lCjHf.IFO" transformation=email-2
+
+
+
+$ vault write transform/encode/email value="some-email1@gmail.com" transformation=email-2
+Key              Value
+---              -----
+encoded_value    J-UnEleBETT@B2FYn.bo@
+$ vault write transform/decode/email value="J-UnEleBETT@B2FYn.bo@" transformation=email-2
+Error writing data to transform/decode/email: Error making API request.
+
+URL: PUT http://127.0.0.1:8200/v1/transform/decode/email
+Code: 400. Errors:
+
+* parse: unable to find matching expression for the value
+
+$ vault write transform/encode/email value="some_email1@gmail.com" transformation=email-2
+Key              Value
+---              -----
+encoded_value    vQJFJNsLEHn@TH-Ra.8Xr
+$ vault write transform/decode/email value="vQJFJNsLEHn@TH-Ra.8Xr" transformation=email-2
+Error writing data to transform/decode/email: Error making API request.
+
+URL: PUT http://127.0.0.1:8200/v1/transform/decode/email
+Code: 400. Errors:
+
+* parse: unable to find matching expression for the value
