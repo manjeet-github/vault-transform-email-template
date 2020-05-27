@@ -35,3 +35,13 @@ URL: PUT http://127.0.0.1:8200/v1/transform/decode/email
 Code: 400. Errors:
 
 * parse: unable to find matching expression for the value
+
+
+vault login root
+vault secrets enable transform
+vault write transform/alphabet/email-alphabets alphabet="1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_.+%"
+vault write transform/template/email-tmpl type=regex pattern="^([a-zA-Z0-9._%+\-]+)@([a-zA-Z0-9.\-]+)\.([A-Za-z0-9]{2,4})$" alphabet=email-alphabets
+vault write transform/transformation/email-fpe-transform type=fpe template=email-tmpl tweak_source=internal allowed_roles=*
+vault write transform/role/email-rbac transformations=email-fpe-transform
+
+vault write transform/encode/email-rbac value="someemail@gmail.com" transformation=email-fpe-transform
