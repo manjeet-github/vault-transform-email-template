@@ -1,0 +1,58 @@
+This is another pattern to process email address. pattern="^(\S+)@(\S+)\.(\S+)$"
+
+vault write transform/alphabet/email-alphabets alphabet="1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_.+%"
+
+vault write transform/template/email-tmpl type=regex pattern="^(\S+)@(\S+)\.(\S+)$" alphabet=email-alphabets
+vault write transform/encode/email-fpe-transform value="someemail@gmail.com" transformation=email-fpe-transform
+vault write transform/transformation/email-fpe-transform type=fpe template=email-tmpl tweak_source=internal allowed_roles=*
+vault write transform/role/email-rbac transformations=email-fpe-transform
+
+$
+$ vault write transform/encode/email-rbac value="someemail@gmail.com" transformation=email-fpe-transform
+Key              Value
+---              -----
+encoded_value    kFb1OVIgA@BTnVT.vOl
+$ vault write transform/encode/email-rbac value="someemail@gmail.cloud.com" transformation=email-fpe-transform
+Key              Value
+---              -----
+encoded_value    oCAfcXNMY@_XqEzKB9NES.Zp%
+$ vault write transform/encode/email-rbac value="somee.mail@gmail-cloud.com" transformation=email-fpe-transform
+Key              Value
+---              -----
+encoded_value    ro9sRPVAL.@A-9FYgfAm8p.eYv
+$ vault write transform/encode/email-rbac value="somee_mail@gmail.com" transformation=email-fpe-transform
+Key              Value
+---              -----
+encoded_value    FGKSYW-MKa@vsmJ3.gdo
+$ vault write transform/encode/email-rbac value="somee-mail@gmail.com" transformation=email-fpe-transform
+Key              Value
+---              -----
+encoded_value    JldKewueYk@ZTK1x.4o7
+$ vault write transform/encode/email-rbac value="somee-mail.s_ron@gmail.com" transformation=email-fpe-transform
+Key              Value
+---              -----
+encoded_value    3+j1yHe_NKeNfUE0@+K3Uh.w3J
+$ vault write transform/decode/email-rbac value="kFb1OVIgA@BTnVT.vOl" transformation=email-fpe-transform
+Key              Value
+---              -----
+decoded_value    someemail@gmail.com
+$ vault write transform/decode/email-rbac value="oCAfcXNMY@_XqEzKB9NES.Zp%" transformation=email-fpe-transform
+Key              Value
+---              -----
+decoded_value    someemail@gmail.cloud.com
+$ vault write transform/decode/email-rbac value="ro9sRPVAL.@A-9FYgfAm8p.eYv" transformation=email-fpe-transform
+Key              Value
+---              -----
+decoded_value    somee.mail@gmail-cloud.com
+$ vault write transform/decode/email-rbac value="FGKSYW-MKa@vsmJ3.gdo" transformation=email-fpe-transform
+Key              Value
+---              -----
+decoded_value    somee_mail@gmail.com
+$ vault write transform/decode/email-rbac value="JldKewueYk@ZTK1x.4o7" transformation=email-fpe-transform
+Key              Value
+---              -----
+decoded_value    somee-mail@gmail.com
+$ vault write transform/decode/email-rbac value="3+j1yHe_NKeNfUE0@+K3Uh.w3J" transformation=email-fpe-transform
+Key              Value
+---              -----
+decoded_value    somee-mail.s_ron@gmail.com
