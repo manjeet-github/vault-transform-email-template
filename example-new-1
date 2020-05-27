@@ -1,40 +1,67 @@
-$ vault write transform/template/email-tmpl type=regex pattern="(.*)@(.*)" alphabet=latin
-Success! Data written to: transform/template/email-tmpl
-$ vault write transform/transformation/email type=fpe template=email-tmpl tweak_source=internal allowed_roles=*
-Success! Data written to: transform/transformation/email
-$ vault write transform/role/payments transformations=email
-Success! Data written to: transform/role/payments
+export VAULT_ADDR=http://127.0.0.1:8200
+vault login root
 
-$ vault write transform/encode/payments value="someemail@gmail.com" transformation=email
+vault secrets enable transform
+vault write transform/alphabet/email-alphabets alphabet=“abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-._0123456789”
+vault write transform/template/email-tmpl type=regex pattern="(.*)@(.*)" alphabet=email-alphabets
+vault write transform/transformation/email-fpe-transform type=fpe template=email-tmpl tweak_source=internal allowed_roles=*
+vault write transform/role/email-transform-role transformations=email-fpe-transform
+
+$ vault write transform/encode/email-fpe-transform value="someemail@gmail.com" transformation=email-fpe-transform
+Success! Data written to: transform/encode/email-fpe-transform
+$ vault write transform/encode/email-transform-role value="someemail@gmail.com" transformation=email-fpe-transform
 Key              Value
 ---              -----
-encoded_value    h33o2x9Ou@fsVc5vmuP
-$ vault write transform/decode/payments value="h33o2x9Ou@fsVc5vmuP" transformation=email
+encoded_value    D.I9p1dUW@3hkBk-IXF
+$
+$ vault write transform/decode/email-transform-role value="D.I9p1dUW@3hkBk-IXF" transformation=email-fpe-transform
 Key              Value
 ---              -----
 decoded_value    someemail@gmail.com
-$ vault write transform/encode/payments value="some_email@gmail.com" transformation=email
+$
+$ vault write transform/encode/email-transform-role value="some.email@gmail.com" transformation=email-fpe-transform
 Key              Value
 ---              -----
-encoded_value    e17INP21SU@Vy5P6SsJg
-$ vault write transform/decode/payments value="e17INP21SU@Vy5P6SsJg" transformation=email
-Key              Value
----              -----
-decoded_value    some_email@gmail.com
-$ vault write transform/encode/payments value="some-email@gmail.com" transformation=email
-Key              Value
----              -----
-encoded_value    "3bb_jyJ"g@UXLA9roJD
-$ vault write transform/decode/payments value=""3bb_jyJ"g@UXLA9roJD" transformation=email
-Key              Value
----              -----
-decoded_value    some-email@gmail.com
-$ vault write transform/encode/payments value="some.email@gmail.com" transformation=email
-Key              Value
----              -----
-encoded_value    .GF8M1Cmjs@"e6j2x2Gs
-$ vault write transform/decode/payments value=".GF8M1Cmjs@"e6j2x2Gs" transformation=email
+encoded_value    vRg9Q.-08e@wuN07UvUN
+$ vault write transform/decode/email-transform-role value="vRg9Q.-08e@wuN07UvUN" transformation=email-fpe-transform
 Key              Value
 ---              -----
 decoded_value    some.email@gmail.com
-
+$
+$ vault write transform/encode/email-transform-role value="some.email.somemail@gmail.com" transformation=email-fpe-transform
+Key              Value
+---              -----
+encoded_value    a_0“5f5.8PS1N9s.iNi@jRPsB1”_9
+$ vault write transform/decode/email-transform-role value="a_0“5f5.8PS1N9s.iNi@jRPsB1”_9" transformation=email-fpe-transform
+Key              Value
+---              -----
+decoded_value    some.email.somemail@gmail.com
+$
+$ vault write transform/encode/email-transform-role value="some_email@gmail.com" transformation=email-fpe-transform
+Key              Value
+---              -----
+encoded_value    oW_“kiSVrV@_aWWw”pH5
+$ vault write transform/decode/email-transform-role value="oW_“kiSVrV@_aWWw”pH5" transformation=email-fpe-transform
+Key              Value
+---              -----
+decoded_value    some_email@gmail.com
+$
+$ vault write transform/encode/email-transform-role value="some-email@gmail.com" transformation=email-fpe-transform
+Key              Value
+---              -----
+encoded_value    eVNQV3BgC“@O”5xsZxNr
+$
+$ vault write transform/decode/email-transform-role value="eVNQV3BgC“@O”5xsZxNr" transformation=email-fpe-transform
+Key              Value
+---              -----
+decoded_value    some-email@gmail.com
+$
+$ vault write transform/encode/email-transform-role value="some-email@gmail.cloud.com" transformation=email-fpe-transform
+Key              Value
+---              -----
+encoded_value    8TdN40KrpR@LSAUVBmADRpuOte
+$
+$ vault write transform/decode/email-transform-role value="8TdN40KrpR@LSAUVBmADRpuOte" transformation=email-fpe-transform
+Key              Value
+---              -----
+decoded_value    some-email@gmail.cloud.com
